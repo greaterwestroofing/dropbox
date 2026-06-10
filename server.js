@@ -220,15 +220,10 @@ app.get("/attachment", async (req, res) => {
     // Upload this batch
     for (const attachment of batch) {
       try {
-        const fileUrl = attachment.attachment_source || attachment.uri;
-        if (!fileUrl) continue;
+        const fileUrl = `https://api.servicem8.com/api_1.0/attachment/${attachment.uuid}.json/file`;
         const fileData = await downloadSM8File(fileUrl, token);
-        const fileName =
-          attachment.attachment_name
-            ? `${attachment.attachment_name}${attachment.file_type || ''}`
-            : attachment.file_type
-            ? `attachment_${attachment.uuid}${attachment.file_type}`
-            : `attachment_${attachment.uuid}`;
+        const ext = attachment.file_type || '.jpg';
+        const fileName = `${attachment.attachment_name || attachment.uuid}${ext}`;
         await uploadToDropbox(dbxToken, folderName, fileName, fileData);
       } catch (uploadErr) {
         console.error(`Failed to upload ${attachment.uuid}:`, uploadErr.message, JSON.stringify(uploadErr.response?.data || {}));
