@@ -14,19 +14,8 @@ const PORT = process.env.PORT || 3000;
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.use(express.json());
-// Allow requests from ServiceM8
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    if (req.method === "OPTIONS") return res.sendStatus(200);
-    next();
-});
+
 // Health check
-// Serve addon icon
-app.get("/icon.png", (req, res) => {
-    res.redirect("https://assets.dropbox.com/images/photos/press-downloads/Dropbox_Logo_Mark.png");
-});
 app.get("/", (req, res) => res.send("SM8 Dropbox Addon OK"));
 
 // ── Get a fresh Dropbox access token using the refresh token ─────────────────
@@ -44,7 +33,7 @@ async function getDropboxAccessToken() {
 // ── Fetch all attachments for a SM8 job ─────────────────────────────────────
 async function getSM8Attachments(jobId, smToken) {
   const res = await axios.get(
-    `https://api.servicem8.com/api_1.0/jobattachment.json?%24filter=job_uuid%20eq%20'${jobId}'`,
+    `https://api.servicem8.com/api_1.0/attachment.json?%24filter=job_uuid%20eq%20'${jobId}'`,
     { headers: { Authorization: `Bearer ${smToken}` } }
   );
   return res.data || [];
