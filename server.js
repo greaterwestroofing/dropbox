@@ -223,7 +223,7 @@ app.get("/attachment", async (req, res) => {
         const fileUrl = `https://api.servicem8.com/api_1.0/attachment/${attachment.uuid}.file`;
         const fileData = await downloadSM8File(fileUrl, token);
         const ext = attachment.file_type || '.jpg';
-        const fileName = `${attachment.attachment_name || attachment.uuid}${ext}`;
+        const fileName = `${attachment.attachment_name || 'Photo'}_${attachment.uuid.substring(0, 8)}${ext}`;
         await uploadToDropbox(dbxToken, folderName, fileName, fileData);
       } catch (uploadErr) {
         console.error(`Failed to upload ${attachment.uuid}:`, uploadErr.message, JSON.stringify(uploadErr.response?.data || {}));
