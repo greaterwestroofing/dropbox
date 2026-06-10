@@ -201,8 +201,11 @@ app.get("/attachment", async (req, res) => {
     );
 
     if (fileAttachments.length === 0) {
+      console.log("All attachments:", JSON.stringify(attachments.slice(0,2)));
       return res.json({ download_link: false, diagnostics: { reason: "No file attachments found" } });
     }
+
+    console.log(`Found ${fileAttachments.length} attachments, sample:`, JSON.stringify(fileAttachments[0]));
 
     // Resolve folder name on first call
     if (!folderName) {
@@ -228,8 +231,7 @@ app.get("/attachment", async (req, res) => {
             : `attachment_${attachment.uuid}`;
         await uploadToDropbox(dbxToken, folderName, fileName, fileData);
       } catch (uploadErr) {
-        console.error(`Failed to upload ${attachment.uuid}:`, uploadErr.message);
-        // Continue with next file rather than failing the whole batch
+        console.error(`Failed to upload ${attachment.uuid}:`, uploadErr.message, JSON.stringify(uploadErr.response?.data || {}));
       }
     }
 
