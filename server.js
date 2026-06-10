@@ -220,7 +220,7 @@ app.get("/attachment", async (req, res) => {
     // Upload this batch
     for (const attachment of batch) {
       try {
-        const fileUrl = `https://api.servicem8.com/api_1.0/attachment/${attachment.uuid}.json/file`;
+        const fileUrl = `https://api.servicem8.com/api_1.0/attachment/${attachment.uuid}.file`;
         const fileData = await downloadSM8File(fileUrl, token);
         const ext = attachment.file_type || '.jpg';
         const fileName = `${attachment.attachment_name || attachment.uuid}${ext}`;
