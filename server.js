@@ -14,14 +14,7 @@ const PORT = process.env.PORT || 3000;
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.use(express.json());
-// Allow requests from ServiceM8
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    if (req.method === "OPTIONS") return res.sendStatus(200);
-    next();
-});
+
 // Health check
 app.get("/", (req, res) => res.send("SM8 Dropbox Addon OK"));
 
@@ -91,8 +84,36 @@ async function uploadToDropbox(dbxToken, folderPath, fileName, fileData) {
 // ── Create a shared Dropbox link for the folder ──────────────────────────────
 async function getDropboxFolderLink(dbxToken, folderPath) {
   const path = `/${folderPath}`;
+
+  // First check if folder exists
   try {
-    // Try creating a share link
+    await axios.post(
+      "https://api.dropboxapi.com/2/files/get_metadata",
+      { path },
+      {
+        headers: {
+          Authorization: `Bearer ${dbxToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (err) {
+    console.error("Folder not found:", path, err.response?.data);
+    // Try to create the folder
+    await axios.post(
+      "https://api.dropboxapi.com/2/files/create_folder_v2",
+      { path, autorename: false },
+      {
+        headers: {
+          Authorization: `Bearer ${dbxToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    ).catch(() => {}); // ignore if already exists
+  }
+
+  // Try creating a share link
+  try {
     const res = await axios.post(
       "https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings",
       { path, settings: { requested_visibility: "public" } },
