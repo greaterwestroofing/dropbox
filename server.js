@@ -16,6 +16,10 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // Health check
+// Serve addon icon
+app.get("/icon.png", (req, res) => {
+    res.redirect("https://assets.dropbox.com/images/photos/press-downloads/Dropbox_Logo_Mark.png");
+});
 app.get("/", (req, res) => res.send("SM8 Dropbox Addon OK"));
 
 // ── Get a fresh Dropbox access token using the refresh token ─────────────────
