@@ -170,8 +170,21 @@ function buildFolderName(job) {
   return safeFolderName(`${number} - ${name}`);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MAIN ENDPOINT: GET /attachment
+// ── Post a note to the SM8 job diary ────────────────────────────────────────
+async function postJobDiaryNote(jobId, smToken, message) {
+  await axios.post(
+    "https://api.servicem8.com/api_1.0/jobactivity.json",
+    {
+      active: 1,
+      job_uuid: jobId,
+      activity_was_email: 0,
+      note: message,
+    },
+    { headers: { Authorization: `Bearer ${smToken}`, "Content-Type": "application/json" } }
+  );
+}
+
+
 // Query params: jobid, token, imagecurrentindex, imagelastindex,
 //               dropboxFolder (optional), download_link (optional)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -244,6 +257,15 @@ app.get("/attachment", async (req, res) => {
 
     // All done — get the shared folder link
     const shareLink = await getDropboxFolderLink(dbxToken, folderName);
+
+    // Post link to job diary
+    if (shareLink) {
+      try {
+        await postJobDiaryNote(jobid, token, `Files related to this job can be downloaded from:\n${shareLink}`);
+      } catch (diaryErr) {
+        console.error("Failed to post diary note:", diaryErr.message);
+      }
+    }
 
     return res.json({
       download_link: shareLink || false,
