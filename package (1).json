@@ -1,0 +1,16 @@
+{
+  "name": "sm8-dropbox-addon",
+  "version": "1.0.0",
+  "description": "ServiceM8 Dropbox attachment export backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "express": "^4.19.2"
+  }
+}
