@@ -219,7 +219,7 @@ app.get("/attachment", async (req, res) => {
       try {
         const fileUrl = attachment.attachment_source || attachment.uri;
         if (!fileUrl) continue;
-        const fileData = await downloadSM8File(fileUrl, smToken);
+        const fileData = await downloadSM8File(fileUrl, token);
         const fileName =
           attachment.attachment_name
             ? `${attachment.attachment_name}${attachment.file_type || ''}`
