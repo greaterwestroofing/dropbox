@@ -14,14 +14,7 @@ const PORT = process.env.PORT || 3000;
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.use(express.json());
-// Allow requests from ServiceM8
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    if (req.method === "OPTIONS") return res.sendStatus(200);
-    next();
-});
+
 // Health check
 app.get("/", (req, res) => res.send("SM8 Dropbox Addon OK"));
 
@@ -40,7 +33,7 @@ async function getDropboxAccessToken() {
 // ── Fetch all attachments for a SM8 job ─────────────────────────────────────
 async function getSM8Attachments(jobId, smToken) {
   const res = await axios.get(
-    `https://api.servicem8.com/api_1.0/attachment.json?%24filter=related_object_uuid%20eq%20'${jobId}'`,
+    `https://api.servicem8.com/api_1.0/attachment.json?%24filter=related_object_uuid%20eq%20'${jobId}'%20and%20related_object%20eq%20'job'%20and%20active%20eq%201`,
     { headers: { Authorization: `Bearer ${smToken}` } }
   );
   return res.data || [];
@@ -170,7 +163,7 @@ app.get("/attachment", async (req, res) => {
 
     // Filter to actual file attachments (skip notes/text entries)
     const fileAttachments = attachments.filter(
-      (a) => a.active !== 0 && a.uri && a.uri.startsWith("http")
+      (a) => a.active !== 0 && (a.attachment_source || a.file_type)
     );
 
     if (fileAttachments.length === 0) {
@@ -190,11 +183,15 @@ app.get("/attachment", async (req, res) => {
     // Upload this batch
     for (const attachment of batch) {
       try {
-        const fileData = await downloadSM8File(attachment.uri, token);
+        const fileUrl = attachment.attachment_source || attachment.uri;
+        if (!fileUrl) continue;
+        const fileData = await downloadSM8File(fileUrl, smToken);
         const fileName =
-          attachment.filename ||
-          attachment.uri.split("/").pop() ||
-          `attachment_${attachment.uuid}`;
+          attachment.attachment_name
+            ? `${attachment.attachment_name}${attachment.file_type || ''}`
+            : attachment.file_type
+            ? `attachment_${attachment.uuid}${attachment.file_type}`
+            : `attachment_${attachment.uuid}`;
         await uploadToDropbox(dbxToken, folderName, fileName, fileData);
       } catch (uploadErr) {
         console.error(`Failed to upload ${attachment.uuid}:`, uploadErr.message);
