@@ -173,11 +173,11 @@ function buildFolderName(job) {
 // ── Post a note to the SM8 job diary ────────────────────────────────────────
 async function postJobDiaryNote(jobId, smToken, message) {
   await axios.post(
-    "https://api.servicem8.com/api_1.0/jobactivity.json",
+    "https://api.servicem8.com/api_1.0/note.json",
     {
       active: 1,
-      job_uuid: jobId,
-      activity_was_email: 0,
+      related_object: "job",
+      related_object_uuid: jobId,
       note: message,
     },
     { headers: { Authorization: `Bearer ${smToken}`, "Content-Type": "application/json" } }
